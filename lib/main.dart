@@ -20,10 +20,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
   final String title;
 
   @override
@@ -31,23 +29,27 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // changing _counter to use 'var' or 'double' and start at 0
-  double _counter = 0.0;
+  // controllers to capture user input
+  final TextEditingController _loginController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  //  myFontSize and starting it to 30
-  double myFontSize = 30.0;
+  // login / home page png
+  String imageSource = 'assets/question.png';
+  String imageLabel = 'Question Mark';
 
-  void _incrementCounter() {
+  void _handleLogin() {
     setState(() {
-      _counter++;
-    });
-  }
+      String password = _passwordController.text;
 
-// update font size and the counter
-  void setNewValue(double value) {
-    setState(() {
-      myFontSize = value;
-      _counter = value;
+      // logic-> if password is "ASDF", show the idea.png shows
+      if (password == "ASDF") {
+        imageSource = 'assets/idea.png'; // Matches your YAML 'idea.png'
+        imageLabel = 'Light Bulb';
+      } else {
+        // Otherwise show the stop.png
+        imageSource = 'assets/stop.png'; // Matches your YAML 'stop.png'
+        imageLabel = 'Stop Sign';
+      }
     });
   }
 
@@ -59,36 +61,67 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // use myFontSize in TextStyle and remove 'const'
-            Text(
-              'You have pushed the button this many times:',
-              style: TextStyle(fontSize: myFontSize),
-            ),
-            Text(
-              '$_counter',
-              style: TextStyle(fontSize: myFontSize), // ssing the variable here
-            ),
+        child:
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              // login name field
+              TextField(
+                controller: _loginController,
+                decoration: const InputDecoration(
+                  labelText: 'Login name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
 
-            // add a slider widget
-            Slider(
-              value: myFontSize,
-              min: 10.0, // min font
-              max: 100.0, // max font
-              onChanged: (double newValue) {
-                // call function to update the size
-                setNewValue(newValue);
-              },
-            ),
-          ],
+              // password field
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Login Button
+              ElevatedButton(
+                onPressed: _handleLogin,
+                child:
+                const Text('Login',
+                  style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 25,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Image with Semantics
+              Semantics(
+                label: imageLabel,
+                child:
+                Image.asset(
+                  imageSource,
+                  width: 300,
+                  height: 300,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Column(
+                      children: [
+                        Icon(Icons.error, size: 50, color: Colors.red),
+                        Text("Image not found! Check file names."),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
