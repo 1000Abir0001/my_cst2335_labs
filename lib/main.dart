@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// LAB 4: Import the encryption package
+// lab4: import the encryption package
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 
 void main() {
@@ -35,34 +35,34 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // LAB 4: Create the instance of EncryptedSharedPreferences
+  // lab4: create the instance of EncryptedSharedPreferences
   final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
 
   // login / home page png
   String imageSource = 'assets/question.png';
   String imageLabel = 'Question Mark';
 
-  // LAB 4: Check for saved data when the app starts
+  // lab4: check for saved data when the app starts
   @override
   void initState() {
     super.initState();
     _loadSavedData();
   }
 
-  // LAB 4: Logic to load the username/password
+  // lab4: logic to load username/password
   void _loadSavedData() async {
-    // We use 'await' because reading from disk takes a tiny bit of time
+    // using 'await' because reading from disk takes a tiny bit of time
     String? savedLogin = await _encryptedData.getString('login_key');
     String? savedPassword = await _encryptedData.getString('password_key');
 
-    // If we found data, fill the boxes and show the SnackBar
+    // if found data, fill boxes and show the SnackBar
     if (savedLogin != null && savedPassword != null && savedLogin.isNotEmpty) {
       setState(() {
         _loginController.text = savedLogin;
         _passwordController.text = savedPassword;
       });
 
-      // Show the SnackBar as required
+      // show the SnackBar as required
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login information loaded!')),
@@ -84,34 +84,32 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
 
-    // 2. LAB 4: Show the Alert Dialog
+    // 2-> lab4: show the alert dialog
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Save Login?"),
-          content: const Text(
-              "Do you want to save your username and password for next time?"),
+          content: const Text("Do you want to save your username and password for next time?"),
           actions: [
-            // The "No" Button
+            // "No" button
             TextButton(
               onPressed: () {
-                // NEW CODE (Overwriting with empty works perfectly):
+                // overwriting with empty
                 _encryptedData.setString('login_key', '');
                 _encryptedData.setString('password_key', '');
 
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // close dialog
               },
               child: const Text("No"),
             ),
-            // The "Yes" Button
+            // "Yes" button
             TextButton(
               onPressed: () {
                 // Requirement: "save the two strings to EncryptedSharedPreferences"
                 _encryptedData.setString('login_key', _loginController.text);
-                _encryptedData.setString(
-                    'password_key', _passwordController.text);
-                Navigator.of(context).pop(); // Close dialog
+                _encryptedData.setString('password_key', _passwordController.text);
+                Navigator.of(context).pop(); // close dialog
               },
               child: const Text("Yes"),
             ),
@@ -155,9 +153,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 20),
 
-              // Login Button
+              // login button
               ElevatedButton(
-                onPressed: _handleLogin, // Calls our new function
+                onPressed: _handleLogin, // calls new function
                 child: const Text(
                   'Login',
                   style: TextStyle(
@@ -168,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 20),
 
-              // Image with Semantics
+              // image with semantics
               Semantics(
                 label: imageLabel,
                 child: Image.asset(
