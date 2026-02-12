@@ -26,7 +26,6 @@ class FoodMenuPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Container(
-        // Keeping the Green Border you liked, but ensuring strict compliance inside
         height: 850, // Fixed height to make SpaceBetween work
         margin: const EdgeInsets.all(15.0),
         padding: const EdgeInsets.all(10.0),
@@ -70,7 +69,7 @@ class FoodMenuPage extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, letterSpacing: 1.5),
             ),
 
-            // 4. Row: Meat Images
+            // 4-> row: Meat Images
             // text written in the middle
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -82,13 +81,13 @@ class FoodMenuPage extends StatelessWidget {
               ],
             ),
 
-            // 5. Header: By Course
+            // 5-> header: By Course
             const Text(
               "BY COURSE",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, letterSpacing: 1.5),
             ),
 
-            // 6. Row: Course Images
+            // 6-> row: Course Images
             // text is over top of the image and bottom center
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -100,13 +99,13 @@ class FoodMenuPage extends StatelessWidget {
               ],
             ),
 
-            // 7. Header: By Dessert
+            // 7-> header: By Dessert
             const Text(
               "BY DESSERT",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, letterSpacing: 1.5),
             ),
 
-            // 8. Row: Dessert Images
+            // 8-> row: Dessert Images
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -124,32 +123,31 @@ class FoodMenuPage extends StatelessWidget {
     );
   }
 
-  // --- STRICT REQUIREMENTS HELPER FUNCTION ---
   Widget _buildFoodItem(String imagePath, String label, {bool textAtBottom = false}) {
-    // REQUIREMENT: "each image is itself a Stack()"
+    //  each image is itself a Stack()
     return Stack(
       alignment: textAtBottom ? Alignment.bottomCenter : Alignment.center,
       children: [
-        // REQUIREMENT: "use the CircleAvatar Widget"
+        // using the CircleAvatar Widget
         CircleAvatar(
           radius: 60,
           backgroundImage: AssetImage(imagePath)
         ),
 
-        // The Text overlay
+        // text overlay
         Padding(
           padding: textAtBottom ? const EdgeInsets.only(bottom: 8.0) : EdgeInsets.zero,
           child: Container(
-            // I added a small background blur so the text is readable,
-            // but kept it subtle to match the lab look.
+            // adding a small background blur so the text is readable, to match lab outlook
+
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             color: textAtBottom ? Colors.white.withOpacity(0.7) : Colors.transparent,
 
             child: Text(
               label,
               style: TextStyle(
-                // For the "Meat" row (center), text is white with shadow (standard for text-on-image)
-                // For "Course" row (bottom), text is black because it's on the white/light background strip
+                // for the "Meat" row (center), text is white with shadow (standard for text-on-image)
+                // for "Course" row (bottom), text is black because it's on the white/light background strip
                 color: textAtBottom ? Colors.black : Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
