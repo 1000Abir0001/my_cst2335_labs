@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+// LAB 4: Import the encryption package
+import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,24 +35,90 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // LAB 4: Create the instance of EncryptedSharedPreferences
+  final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
+
   // login / home page png
   String imageSource = 'assets/question.png';
   String imageLabel = 'Question Mark';
 
+  // LAB 4: Check for saved data when the app starts
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData();
+  }
+
+  // LAB 4: Logic to load the username/password
+  void _loadSavedData() async {
+    // We use 'await' because reading from disk takes a tiny bit of time
+    String? savedLogin = await _encryptedData.getString('login_key');
+    String? savedPassword = await _encryptedData.getString('password_key');
+
+    // If we found data, fill the boxes and show the SnackBar
+    if (savedLogin != null && savedPassword != null && savedLogin.isNotEmpty) {
+      setState(() {
+        _loginController.text = savedLogin;
+        _passwordController.text = savedPassword;
+      });
+
+      // Show the SnackBar as required
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login information loaded!')),
+        );
+      }
+    }
+  }
+
   void _handleLogin() {
+    // Week 2 logic for the images
     setState(() {
       String password = _passwordController.text;
-
-      // logic-> if password is "ASDF", show the idea.png shows
       if (password == "ASDF") {
-        imageSource = 'assets/idea.png'; // Matches your YAML 'idea.png'
+        imageSource = 'assets/idea.png';
         imageLabel = 'Light Bulb';
       } else {
-        // Otherwise show the stop.png
-        imageSource = 'assets/stop.png'; // Matches your YAML 'stop.png'
+        imageSource = 'assets/stop.png';
         imageLabel = 'Stop Sign';
       }
     });
+
+    // 2. LAB 4: Show the Alert Dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Save Login?"),
+          content: const Text(
+              "Do you want to save your username and password for next time?"),
+          actions: [
+            // The "No" Button
+            TextButton(
+              onPressed: () {
+                // NEW CODE (Overwriting with empty works perfectly):
+                _encryptedData.setString('login_key', '');
+                _encryptedData.setString('password_key', '');
+
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: const Text("No"),
+            ),
+            // The "Yes" Button
+            TextButton(
+              onPressed: () {
+                // Requirement: "save the two strings to EncryptedSharedPreferences"
+                _encryptedData.setString('login_key', _loginController.text);
+                _encryptedData.setString(
+                    'password_key', _passwordController.text);
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: const Text("Yes"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -61,8 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child:
-        Padding(
+        child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -90,12 +157,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
               // Login Button
               ElevatedButton(
-                onPressed: _handleLogin,
-                child:
-                const Text('Login',
+                onPressed: _handleLogin, // Calls our new function
+                child: const Text(
+                  'Login',
                   style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 25,
+                    color: Colors.blue,
+                    fontSize: 25,
                   ),
                 ),
               ),
@@ -104,8 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
               // Image with Semantics
               Semantics(
                 label: imageLabel,
-                child:
-                Image.asset(
+                child: Image.asset(
                   imageSource,
                   width: 300,
                   height: 300,
