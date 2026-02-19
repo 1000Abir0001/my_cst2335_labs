@@ -7,10 +7,9 @@ void main() {
   runApp(const MyApp());
 }
 
-// ============================================================================
 // LAB 5: The Repository Pattern
-// Requirement: "Use the repository pattern for storing the user's data"
-// ============================================================================
+// Using the repository pattern to store user's data
+
 class ProfileRepository {
   final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
 
@@ -66,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _passwordController = TextEditingController();
   final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
 
-  // LAB 5: Create the repository instance
+  // LAB 5: create the repository instance
   final ProfileRepository _repository = ProfileRepository();
 
   String imageSource = 'assets/question.png';
@@ -76,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _loadSavedLoginData();
-    // LAB 5: Load the repository data on the first page once app loads
+    // LAB 5: load the repository data on the first page once app loads
     _repository.loadData();
   }
 
@@ -100,11 +99,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _handleLogin() {
     setState(() {
       String password = _passwordController.text;
-      if (password == "ASDF") {
+
+      if (password == "ASDF" ) {
         imageSource = 'assets/idea.png';
         imageLabel = 'Light Bulb';
 
-        // LAB 5: shows "Welcome Back" followed by login name
+        // LAB 5: shows "Welcome Back" + login name
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Welcome Back ${_loginController.text}')),
         );
@@ -157,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // week4 box sizes
+    // week4 box sizes, spaces
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -231,14 +231,14 @@ class _ProfilePageState extends State<ProfilePage> {
     _phoneController = TextEditingController(text: widget.repository.phone);
     _emailController = TextEditingController(text: widget.repository.email);
 
-    // LAB 5: addListener() to save data whenever text changes
+    // LAB 5: addListener() to save data whenever text change
     _firstController.addListener(() => widget.repository.saveData('firstName', _firstController.text));
     _lastController.addListener(() => widget.repository.saveData('lastName', _lastController.text));
     _phoneController.addListener(() => widget.repository.saveData('phone', _phoneController.text));
     _emailController.addListener(() => widget.repository.saveData('email', _emailController.text));
   }
 
-  // Helper function to launch URLs and show AlertDialog if not supported
+  // helper function to launch URLs and show AlertDialog if not supported
   Future<void> _launch(String scheme, String path) async {
     final Uri uri = Uri(scheme: scheme, path: path);
     if (await canLaunchUrl(uri)) {
@@ -284,7 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 10),
 
-            // LAB 5: Phone Number Row with Flexible widget
+            // LAB 5: phone number row with Flexible widget
             Row(
               children: [
                 Flexible(
