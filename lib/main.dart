@@ -1,11 +1,42 @@
 import 'package:flutter/material.dart';
-// lab4: import the encryption package
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
+// LAB 5: Import the new url_launcher package
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
+// ============================================================================
+// LAB 5: The Repository Pattern
+// Requirement: "Use the repository pattern for storing the user's data"
+// ============================================================================
+class ProfileRepository {
+  final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
+
+  // variables to hold loaded data
+  String firstName = '';
+  String lastName = '';
+  String phone = '';
+  String email = '';
+
+  // loadData() - this function loads the variables
+  Future<void> loadData() async {
+    firstName = await _encryptedData.getString('firstName');
+    lastName = await _encryptedData.getString('lastName');
+    phone = await _encryptedData.getString('phone');
+    email = await _encryptedData.getString('email');
+  }
+
+  // saveData() - this function saves the variables
+  Future<void> saveData(String key, String value) async {
+    await _encryptedData.setString(key, value);
+  }
+}
+
+//
+// MyApp & Login Page (First Page)
+//
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -31,38 +62,33 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // controllers to capture user input
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  // lab4: create the instance of EncryptedSharedPreferences
   final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
 
-  // login / home page png
+  // LAB 5: Create the repository instance
+  final ProfileRepository _repository = ProfileRepository();
+
   String imageSource = 'assets/question.png';
   String imageLabel = 'Question Mark';
 
-  // lab4: check for saved data when the app starts
   @override
   void initState() {
     super.initState();
-    _loadSavedData();
+    _loadSavedLoginData();
+    // LAB 5: Load the repository data on the first page once app loads
+    _repository.loadData();
   }
 
-  // lab4: logic to load username/password
-  void _loadSavedData() async {
-    // using 'await' because reading from disk takes a tiny bit of time
+  void _loadSavedLoginData() async {
     String? savedLogin = await _encryptedData.getString('login_key');
     String? savedPassword = await _encryptedData.getString('password_key');
 
-    // if found data, fill boxes and show the SnackBar
-    if (savedLogin != null && savedPassword != null && savedLogin.isNotEmpty) {
+    if (savedLogin.isNotEmpty && savedPassword.isNotEmpty) {
       setState(() {
         _loginController.text = savedLogin;
         _passwordController.text = savedPassword;
       });
-
-      // show the SnackBar as required
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login information loaded!')),
@@ -72,19 +98,34 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _handleLogin() {
-    // Week 2 logic for the images
     setState(() {
       String password = _passwordController.text;
       if (password == "ASDF") {
         imageSource = 'assets/idea.png';
         imageLabel = 'Light Bulb';
+
+        // LAB 5: shows "Welcome Back" followed by login name
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Welcome Back ${_loginController.text}')),
+        );
+
+        // LAB 5: navigate to the ProfilePage and pass the repository
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(
+              loginName: _loginController.text,
+              repository: _repository,
+            ),
+          ),
+        );
       } else {
         imageSource = 'assets/stop.png';
         imageLabel = 'Stop Sign';
       }
     });
 
-    // 2-> lab4: show the alert dialog
+    // Week 4 Alert Dialog
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -92,24 +133,19 @@ class _MyHomePageState extends State<MyHomePage> {
           title: const Text("Save Login?"),
           content: const Text("Do you want to save your username and password for next time?"),
           actions: [
-            // "No" button
             TextButton(
               onPressed: () {
-                // overwriting with empty
                 _encryptedData.setString('login_key', '');
                 _encryptedData.setString('password_key', '');
-
-                Navigator.of(context).pop(); // close dialog
+                Navigator.of(context).pop();
               },
               child: const Text("No"),
             ),
-            // "Yes" button
             TextButton(
               onPressed: () {
-                // Requirement: "save the two strings to EncryptedSharedPreferences"
                 _encryptedData.setString('login_key', _loginController.text);
                 _encryptedData.setString('password_key', _passwordController.text);
-                Navigator.of(context).pop(); // close dialog
+                Navigator.of(context).pop();
               },
               child: const Text("Yes"),
             ),
@@ -121,70 +157,172 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // week4 box sizes
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // login name field
               TextField(
                 controller: _loginController,
-                decoration: const InputDecoration(
-                  labelText: 'Login name',
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(labelText: 'Login name', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 10),
-
-              // password field
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 20),
-
-              // login button
               ElevatedButton(
-                onPressed: _handleLogin, // calls new function
-                child: const Text(
-                  'Login',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 25,
-                  ),
-                ),
+                onPressed: _handleLogin,
+                child: const Text('Login', style: TextStyle(color: Colors.blue, fontSize: 25)),
               ),
               const SizedBox(height: 20),
-
-              // image with semantics
               Semantics(
                 label: imageLabel,
                 child: Image.asset(
-                  imageSource,
-                  width: 300,
-                  height: 300,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Column(
-                      children: [
-                        Icon(Icons.error, size: 50, color: Colors.red),
-                        Text("Image not found! Check file names."),
-                      ],
-                    );
-                  },
+                  imageSource, width: 300, height: 300,
+                  errorBuilder: (context, error, stackTrace) => const Column(
+                    children: [Icon(Icons.error, size: 50, color: Colors.red), Text("Image not found!")],
+                  ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+//
+// LAB 5: The Profile Page ->2nd page
+//
+class ProfilePage extends StatefulWidget {
+  final String loginName;
+  final ProfileRepository repository;
+
+  const ProfilePage({super.key, required this.loginName, required this.repository});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // LAB 5: TextFields
+  late final TextEditingController _firstController;
+  late final TextEditingController _lastController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    //  loading data into the TextFields
+    _firstController = TextEditingController(text: widget.repository.firstName);
+    _lastController = TextEditingController(text: widget.repository.lastName);
+    _phoneController = TextEditingController(text: widget.repository.phone);
+    _emailController = TextEditingController(text: widget.repository.email);
+
+    // LAB 5: addListener() to save data whenever text changes
+    _firstController.addListener(() => widget.repository.saveData('firstName', _firstController.text));
+    _lastController.addListener(() => widget.repository.saveData('lastName', _lastController.text));
+    _phoneController.addListener(() => widget.repository.saveData('phone', _phoneController.text));
+    _emailController.addListener(() => widget.repository.saveData('email', _emailController.text));
+  }
+
+  // Helper function to launch URLs and show AlertDialog if not supported
+  Future<void> _launch(String scheme, String path) async {
+    final Uri uri = Uri(scheme: scheme, path: path);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => const AlertDialog(
+            content: Text("URL is not supported on this device."),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Profile Page")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // LAB 5: Text widget saying "Welcome Back" followed by login name
+            Text(
+              "Welcome Back ${widget.loginName}",
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+
+            // first name
+            TextField(
+              controller: _firstController,
+              decoration: const InputDecoration(labelText: 'First Name', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 10),
+
+            // last name
+            TextField(
+              controller: _lastController,
+              decoration: const InputDecoration(labelText: 'Last Name', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 10),
+
+            // LAB 5: Phone Number Row with Flexible widget
+            Row(
+              children: [
+                Flexible(
+                  child: TextField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                    keyboardType: TextInputType.phone,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.phone),
+                  onPressed: () => _launch('tel', _phoneController.text),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.message),
+                  onPressed: () => _launch('sms', _phoneController.text),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // LAB 5: Email Address Row with Flexible widget
+            Row(
+              children: [
+                Flexible(
+                  child: TextField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'Email address', border: OutlineInputBorder()),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.mail),
+                  onPressed: () => _launch('mailto', _emailController.text),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
