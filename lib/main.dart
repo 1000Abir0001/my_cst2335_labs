@@ -71,9 +71,11 @@ class _MyHomePageState extends State<MyHomePage> {
   String imageSource = 'assets/question.png';
   String imageLabel = 'Question Mark';
 
+  //also starts when refresh
   @override
   void initState() {
     super.initState();
+
     _loadSavedLoginData();
     // LAB 5: load the repository data on the first page once app loads
     _repository.loadData();
@@ -84,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
     String? savedPassword = await _encryptedData.getString('password_key');
 
     // a check to make sure it ignores Password
-    if (savedLogin.isNotEmpty && savedPassword.isNotEmpty && savedLogin != 'CLEARED') {
+    if (savedLogin.isNotEmpty && savedPassword.isNotEmpty && savedLogin != 'CLEARED#@1') {
       setState(() {
         _loginController.text = savedLogin;
         _passwordController.text = savedPassword;
@@ -137,14 +139,14 @@ class _MyHomePageState extends State<MyHomePage> {
             TextButton(
               onPressed: () async {
                 // overwrite the safe with our secret codeword
-                await _encryptedData.setString('login_key', 'CLEARED');
-                await _encryptedData.setString('password_key', 'CLEARED');
+                await _encryptedData.setString('login_key', 'CLEARED#@1');
+                await _encryptedData.setString('password_key', 'CLEARED#@1');
 
                 // wipe the text boxes on the screen instantly
                 _loginController.clear();
                 _passwordController.clear();
 
-                // close the popup
+                // close popup
                 Navigator.of(context).pop();
               },
               child: const Text("No"),
@@ -153,6 +155,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 _encryptedData.setString('login_key', _loginController.text);
                 _encryptedData.setString('password_key', _passwordController.text);
+
+                // close popup
                 Navigator.of(context).pop();
               },
               child: const Text("Yes"),
@@ -211,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 //
-// LAB 5: The Profile Page ->2nd page
+// LAB 5: profile page ->2nd page
 //
 class ProfilePage extends StatefulWidget {
   final String loginName;
@@ -271,7 +275,7 @@ class _ProfilePageState extends State<ProfilePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // LAB 5: Text widget saying "Welcome Back" followed by login name
+            // LAB 5: text widget saying "Welcome Back" followed by login name
             Text(
               "Welcome Back ${widget.loginName}",
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
