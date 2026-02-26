@@ -83,14 +83,15 @@ class _MyHomePageState extends State<MyHomePage> {
     String? savedLogin = await _encryptedData.getString('login_key');
     String? savedPassword = await _encryptedData.getString('password_key');
 
-    if (savedLogin.isNotEmpty && savedPassword.isNotEmpty) {
+    // a check to make sure it ignores Password
+    if (savedLogin.isNotEmpty && savedPassword.isNotEmpty && savedLogin != 'CLEARED') {
       setState(() {
         _loginController.text = savedLogin;
         _passwordController.text = savedPassword;
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login information loaded!')),
+          SnackBar(content: Text('Login information loaded! ${_loginController.text}')),
         );
       }
     }
@@ -134,9 +135,16 @@ class _MyHomePageState extends State<MyHomePage> {
           content: const Text("Do you want to save your username and password for next time?"),
           actions: [
             TextButton(
-              onPressed: () {
-                _encryptedData.setString('login_key', '');
-                _encryptedData.setString('password_key', '');
+              onPressed: () async {
+                // overwrite the safe with our secret codeword
+                await _encryptedData.setString('login_key', 'CLEARED');
+                await _encryptedData.setString('password_key', 'CLEARED');
+
+                // wipe the text boxes on the screen instantly
+                _loginController.clear();
+                _passwordController.clear();
+
+                // close the popup
                 Navigator.of(context).pop();
               },
               child: const Text("No"),
