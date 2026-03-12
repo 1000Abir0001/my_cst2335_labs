@@ -11,7 +11,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      // Changed the main theme color to match the purple aesthetic!
+      theme: ThemeData(primarySwatch: Colors.purple),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -82,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget ListPage() {
     return Column(
       children: [
-        // Input Row - two TextFields + Button
+        // Input Row - Removed the SizedBoxes so they touch perfectly!
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -95,7 +96,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
             Expanded(
               child: TextField(
                 controller: _quantityController,
@@ -105,7 +105,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
             ElevatedButton(
               onPressed: _addItem,
               child: const Text('Click here'),
@@ -126,18 +125,18 @@ class _MyHomePageState extends State<MyHomePage> {
             itemBuilder: (context, rowNum) {
               return GestureDetector(
                 onLongPress: () => _showDeleteDialog(rowNum),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${rowNum + 1}: ${shoppingList[rowNum]['name']}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      'quantity: ${shoppingList[rowNum]['quantity']}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    // Centered the text exactly like the professor's sample image!
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${rowNum + 1}: ${shoppingList[rowNum]['name']}  quantity: ${shoppingList[rowNum]['quantity']}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -150,7 +149,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        // Added the pretty purple color and centered the title!
+        backgroundColor: Colors.purple[200],
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListPage(),
