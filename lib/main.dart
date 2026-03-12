@@ -10,11 +10,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'my_cst2335_labs',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      title: 'Flutter Demo',
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -29,99 +26,134 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // controllers to capture user input
-  final TextEditingController _loginController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
 
-  // login / home page png
-  String imageSource = 'assets/question.png';
-  String imageLabel = 'Question Mark';
+  // Controllers for the two TextFields
+  final TextEditingController _itemController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
 
-  void _handleLogin() {
-    setState(() {
-      String password = _passwordController.text;
+  // List to store items as maps {name, quantity}
+  List<Map<String, String>> shoppingList = [];
 
-      // logic-> if password is "ASDF", show the idea.png shows
-      if (password == "ASDF") {
-        imageSource = 'assets/idea.png'; // Matches your YAML 'idea.png'
-        imageLabel = 'Light Bulb';
-      } else {
-        // Otherwise show the stop.png
-        imageSource = 'assets/stop.png'; // Matches your YAML 'stop.png'
-        imageLabel = 'Stop Sign';
-      }
-    });
+  // Add item function
+  void _addItem() {
+    if (_itemController.text.isNotEmpty && _quantityController.text.isNotEmpty) {
+      setState(() {
+        shoppingList.add({
+          'name': _itemController.text,
+          'quantity': _quantityController.text,
+        });
+        // Clear both fields after adding
+        _itemController.text = '';
+        _quantityController.text = '';
+      });
+    }
+  }
+
+  // Delete dialog on long press
+  void _showDeleteDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Item'),
+          content: const Text('Do you want to delete this item?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  shoppingList.removeAt(index); // Remove item
+                });
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Just close, do nothing
+              },
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget ListPage() {
+    return Column(
+      children: [
+        // Input Row - two TextFields + Button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _itemController,
+                decoration: const InputDecoration(
+                  hintText: 'Type the item here',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _quantityController,
+                decoration: const InputDecoration(
+                  hintText: 'Type the quantity here',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _addItem,
+              child: const Text('Click here'),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // ListView or Empty message
+        Expanded(
+          child: shoppingList.isEmpty
+              ? const Center(
+            child: Text('There are no items in the list'),
+          )
+              : ListView.builder(
+            itemCount: shoppingList.length,
+            itemBuilder: (context, rowNum) {
+              return GestureDetector(
+                onLongPress: () => _showDeleteDialog(rowNum),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${rowNum + 1}: ${shoppingList[rowNum]['name']}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    Text(
+                      'quantity: ${shoppingList[rowNum]['quantity']}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child:
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // login name field
-              TextField(
-                controller: _loginController,
-                decoration: const InputDecoration(
-                  labelText: 'Login name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // password field
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Login Button
-              ElevatedButton(
-                onPressed: _handleLogin,
-                child:
-                const Text('Login',
-                  style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 25,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Image with Semantics
-              Semantics(
-                label: imageLabel,
-                child:
-                Image.asset(
-                  imageSource,
-                  width: 300,
-                  height: 300,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Column(
-                      children: [
-                        Icon(Icons.error, size: 50, color: Colors.red),
-                        Text("Image not found! Check file names."),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+      appBar: AppBar(title: Text(widget.title)),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListPage(),
       ),
     );
   }
