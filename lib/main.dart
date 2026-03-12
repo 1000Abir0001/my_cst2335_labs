@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      // Changed the main theme color to match the purple aesthetic!
+
       theme: ThemeData(primarySwatch: Colors.purple),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -116,8 +116,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
         // ListView or Empty message
         Expanded(
-          child: shoppingList.isEmpty
-              ? const Center(
+          child: shoppingList.isEmpty ? const Center(
+
             child: Text('There are no items in the list'),
           )
               : ListView.builder(
@@ -128,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
-                    // Centered the text exactly like the professor's sample image!
+                    // Center the text
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
@@ -151,7 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        // Added the pretty purple color and centered the title!
+        // Added purple
         backgroundColor: Colors.purple[200],
         centerTitle: true,
       ),
