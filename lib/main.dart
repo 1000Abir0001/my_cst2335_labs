@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'database.dart';
+import 'shopping_item.dart';
+import 'shopping_item_dao.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -11,7 +15,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-
       theme: ThemeData(primarySwatch: Colors.purple),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -32,17 +35,56 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _itemController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
 
-  // List to store items as maps {name, quantity}
-  List<Map<String, String>> shoppingList = [];
+  // --- NEW DATABASE VARIABLES ---
+  late ShoppingItemDao itemDao;
+  List<ShoppingItem> shoppingList = [];
+  int currentId = 1;
+  bool isDatabaseReady = false; // flag to know when it's safe to draw the screen
+
+  // --- INITIALIZE DATABASE ---
+  @override
+  void initState() {
+    super.initState();
+    _initDatabase();
+  }
+
+  Future<void> _initDatabase() async {
+
+    final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    itemDao = database.shoppingItemDao;
+
+    // Load items from last time
+    final items = await itemDao.findAllItems();
+    setState(() {
+      shoppingList = items;
+      // next ID higher than the loaded
+      for (var item in items) {
+        if (item.id >= currentId) {
+          currentId = item.id + 1;
+        }
+      }
+      isDatabaseReady = true;
+    });
+  }
 
   // Add item function
-  void _addItem() {
-    if (_itemController.text.isNotEmpty && _quantityController.text.isNotEmpty) {
+  Future<void> _addItem() async {
+    if (_itemController.text.isNotEmpty && _quantityController.text.isNotEmpty ) {
+
+      // Create the new item
+      final newItem = ShoppingItem(
+          currentId++,
+          _itemController.text,
+          _quantityController.text
+      );
+
+      // Save on database
+      await itemDao.insertItem(newItem);
+
+      // Update screen
       setState(() {
-        shoppingList.add({
-          'name': _itemController.text,
-          'quantity': _quantityController.text,
-        });
+        shoppingList.add(newItem);
+
         // Clear both fields after adding
         _itemController.text = '';
         _quantityController.text = '';
@@ -51,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Delete dialog on long press
-  void _showDeleteDialog(int index) {
+  void _showDeleteDialog(ShoppingItem item) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -60,9 +102,12 @@ class _MyHomePageState extends State<MyHomePage> {
           content: const Text('Do you want to delete this item?'),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                // Remove from database first
+                await itemDao.deleteItem(item);
+
                 setState(() {
-                  shoppingList.removeAt(index); // Remove item
+                  shoppingList.remove(item); // Remove item from screen
                 });
                 Navigator.of(context).pop(); // Close dialog
               },
@@ -70,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Just close, do nothing
+                Navigator.of(context).pop(); // close
               },
               child: const Text('No'),
             ),
@@ -81,9 +126,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget ListPage() {
+    // if the database loading,show loading spinner
+    if (!isDatabaseReady) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Column(
       children: [
-        // Input Row - Removed the SizedBoxes so they touch perfectly!
+        // Input Row
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -117,22 +167,23 @@ class _MyHomePageState extends State<MyHomePage> {
         // ListView or Empty message
         Expanded(
           child: shoppingList.isEmpty ? const Center(
-
             child: Text('There are no items in the list'),
           )
               : ListView.builder(
             itemCount: shoppingList.length,
             itemBuilder: (context, rowNum) {
+              final currentItem = shoppingList[rowNum]; // grab item
+
               return GestureDetector(
-                onLongPress: () => _showDeleteDialog(rowNum),
+                onLongPress: () => _showDeleteDialog(currentItem), // Pass the whole item
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
-                    // Center the text
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+
                       Text(
-                        '${rowNum + 1}: ${shoppingList[rowNum]['name']}  quantity: ${shoppingList[rowNum]['quantity']}',
+                        '${rowNum + 1}: ${currentItem.name}  quantity: ${currentItem.quantity}',
                         style: const TextStyle(fontSize: 16),
                       ),
                     ],
@@ -151,7 +202,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        // Added purple
         backgroundColor: Colors.purple[200],
         centerTitle: true,
       ),
